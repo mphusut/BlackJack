@@ -1,0 +1,352 @@
+# VARIABLES
+
+deck = []
+player_hand = []
+dealer_hand = []
+current_round = 0
+
+
+# FUNCTIONS
+
+def create_deck():
+    """
+    Creates and returns a deck of 52 cards. The cards are in the form 102,206,412 etc. 
+
+    :return: List of ints
+
+    EXAMPLE:
+    deck = create_deck(deck)
+    print(deck)
+
+    >>> [101,102,103,104,105,106,107,108,109,110,111,112,113,201,202,203,204,205,206,207,208,209,210,211,212,213,301,302,303,304,305,306,307,308,309,310,311,312,313,401,402,403,404,405,406,407,408,409,410,411,412,413]
+    """
+    deck = [] # create empty list
+
+    # we will use an embedded for loop
+    for suit in range(1,5):  # loop through suits
+        for rank in range(1,14): # for each suit create each rank
+            deck.append(suit*100 + rank) # add to list
+
+    return deck
+
+def shuffle_deck(deck):
+    """
+    Shuffles the deck of cards passed in the paramater deck.
+
+    :param deck: a list of cards
+    :return: None
+
+    EXAMPLE:
+    deck = create_deck(deck)
+    shuffle_deck(deck)
+    print(deck)
+    
+    >>> [201, 302, 410, 210, 213, 108, 309, 101, 408, 206, 404, 107, 205, 308, 110, 402, 306, 407, 212, 311, 304, 111, 109, 303, 102, 310, 207, 312, 103, 411, 305, 208, 105, 313, 403, 413, 202, 112, 409, 106, 104, 113, 211, 307, 401, 204, 412, 203, 301, 209, 405, 406]
+    """
+    import random
+    random.shuffle(deck) # this will shuffle the list
+
+def deal_cards(deck, n):
+    """
+    Deals n cards from the given deck. The cards dealt
+    will be removed from the deck and returned from
+    the function in a list.
+
+    :param deck: list of cards
+    :param n: int
+    :return: list of cards
+
+    EXAMPLE:
+    deck = create_deck(deck)
+    shuffle_deck(deck)
+    cards = deal_cards(deck, 4)
+    print(cards)
+    print(len(deck))
+
+    >>> [101,205,313,306]
+    >>> 48
+    """
+
+    cards = deck[:n]  # get the top n cards from the deck
+    for card in cards:
+        deck.remove(card) # delete each of those cards from the deck
+
+    return cards
+
+def hand_value(hand):
+    """
+    Calculates and returns the value of the given hand.
+    Always returns the BEST possible value (be careful with aces).
+    
+    :param hand: list of cards
+    :return: int
+
+    EXAMPLES:
+    player_hand = [101,211]
+    value = hand_value(player_hand)
+    print(value)
+    >>> 21
+
+    player_hand = [113,211]
+    value = hand_value(player_hand)
+    print(value)
+    >>> 20
+
+    player_hand = [113,211, 107]
+    value = hand_value(player_hand)
+    print(value)
+    >>> 27
+
+    player_hand = [205,305, 407,201]
+    value = hand_value(player_hand)
+    print(value)
+    >>> 18
+    """
+    value = 0
+    ace = False 
+
+    for card in hand:
+        rank = card % 100  # this will get the rank of the card
+        if rank == 1:  # check if it is an ace
+            value += 11
+            ace = True
+        elif rank >= 10:  # if it is 10-13
+            value += 10
+        else:
+            value += rank
+
+    if value > 21 and ace:  # if we go over and we have an ace try to use ace as value 1
+        value -= 10
+
+    return value
+
+def is_over(hand):
+    """
+    Returns a boolean value representing if a given
+    has busted or is over 21.
+
+    :param hand: list of cards
+    :return: bool
+
+    EXAMPLE:
+    hand = [110,210,310]
+    print(is_over(hand))
+    >>> True
+
+    hand = [101,210,310]
+    print(is_over(hand))
+    >>> False
+
+    hand = [105, 207]
+    print(is_over(hand))
+    >>> False
+    """
+    value = hand_value(hand)  # get hand value
+    if value > 21:  # check if hand value is over 21
+        return True
+    else:
+        return False
+
+def compare_hands(hand1, hand2):
+    """
+    Comapres two hands to see if hand1 is better than hand2.
+    If hand1 is better than the function returns 1, if the hands
+    are the same returns 0. Otherwise if hand2 is better than 1 returns -1.
+    
+    You may assume at least one hand will be <= 21.
+
+    :param hand1: list of cards
+    :param hand2: list of cards
+    :return: int
+
+    EXAMPLES:
+    player_hand = [101,110]
+    dealer_hand = [210,311]
+    print(compare_hands(player_hand, dealer_hand))
+    >>> 1
+    
+    player_hand = [101,110]
+    dealer_hand = [210,311]
+    print(compare_hands(dealer_hand, player_hand))
+    >>> -1
+
+    player_hand = [101,110]
+    print(compare_hands(player_hand, player_hand))
+    >>> 0
+
+    """
+    hand1_value = hand_value(hand1)  # get both hands values
+    hand2_value = hand_value(hand2)
+
+    if hand1_value > hand2_value and not(is_over(hand1)):  # if hand1 is better than hand2 and not over 21
+        return 1
+    elif hand2_value > hand1_value and not(is_over(hand2)):  # if hand2 is better than hand1 and not over 21
+        return -1
+    elif hand1_value == hand2_value:
+        return 0
+
+def get_hit_or_stay():
+    """
+    Gets a decision of whether to hit or stay from the user.
+    Returns True if the user hits and False if the user stays. The
+    function should keep asking for input until it recives "hit" or "stay".
+    The case in which the user types "hit" or "stay" should not matter. For 
+    example, "STay" should work to stay.
+
+    :return: Bool
+
+    EXAMPLES:
+    decision = get_hit_or_stay()
+    >>> Would you like to hit or stay? no
+    >>> Not a valid option, try again.
+    >>> Would you like to hit ot stay? HiT
+    print(decision)
+    >>> True
+
+    decision = get_hit_or_stay()
+    >>> Would you like to hit or stay? stay
+    print(decision)
+    >>> False
+    """
+
+    while True:
+        answer = input("Would you like to hit or stay? ").lower()
+        if answer == "hit":
+            return True
+        elif answer == "stay":
+            return False
+        else:
+            print("Not a valid option, try again.")
+
+
+# ADDED FUNCTIONS
+
+def dealer_move(hand, deck):
+    """
+    Will simulate a move for the dealer based on the predefined rules.
+
+    :param hand: list of cards
+    :param deck: list of cards
+    :return: bool
+    """
+
+    value = hand_value(hand)
+    if value <= 16:  # if the dealers hand value is less than or 16 hit
+        card = deal_cards(deck, 1)
+        hand.append(card[0])
+        print("The dealer hits and recieved:", card[0])
+        return False
+    else:  # otherwise dealer stays
+        print("The dealer stays.")
+        return True
+
+
+def display_cards(cards, show_both=True, dealer=False):
+    """
+    displays the cards nicely to the console. If show_both
+    is false it will only show one card.
+    
+    :param cards: list of cards
+    :param show_both: bool
+    """
+    # this functions needs to handle displaying player and dealer cards
+    # so we need to know if we should show both cards or only one.
+
+    if show_both:  
+        display = ""
+        for card in cards:
+            display += str(card) + ", "
+
+        display = display[:-2] + "."
+    else:
+        display = str(cards[0]) + ", hidden."
+
+    if dealer:
+        print("Dealers Cards:", display)
+    else:
+        print("Your Cards:", display)
+    
+
+# MAINLINE
+# This is where you will implement the code to play the game
+
+print("Welcome to blackjack!")
+
+run = True
+while run:
+    print("--------------------------------")
+    player_lost = False
+    dealer_lost = False
+
+    # each round create and shuffle a new deck
+    deck = create_deck()
+    shuffle_deck(deck)
+    current_round += 1
+
+    print("Round", current_round, "has started!")
+
+    # deal cards from deck to create hands
+
+    player_hand = deal_cards(deck, 2)
+    dealer_hand = deal_cards(deck, 2)
+    
+    print("The cards have been dealt...")
+    print()
+    display_cards(player_hand, True, False)
+    display_cards(dealer_hand, False, True)
+    print()
+    print("Your turn has started.")
+
+    decision = get_hit_or_stay()  # get if player hits or stays
+    print()
+
+    while decision:  # while the player has not stayed
+        card = deal_cards(deck,1)  # give player one card because they hit
+        player_hand.append(card[0]) 
+
+        print("You hit and recieved the card:", card[0])
+        display_cards(player_hand, True)
+        print()
+
+        if is_over(player_hand):  # if the player goes over they lost
+            print("You BUST and have lost this round.")
+            player_lost = True
+            break
+
+        decision = get_hit_or_stay() 
+
+
+    if not player_lost:  # if the player didn't loose from going over simulate dealers turn
+        print("You decided to stay, your turn is over. The dealers turn has started.")
+        print()
+        print("The dealer reveals their hidden card is a", dealer_hand[1])
+        display_cards(dealer_hand, True, True)
+        print()
+
+        while True:
+            stayed = dealer_move(dealer_hand, deck)  # get dealers move (True means stayed)
+            if is_over(dealer_hand):
+                print("The dealer BUSTS, you win!")
+                dealer_lost = True
+                break
+            elif stayed:  # if we stayed break the loop
+                break 
+
+    print()
+    if not(dealer_lost or player_lost):  # if neither player has lost check who has higher valued hand
+        print("The dealers has", hand_value(dealer_hand))
+        print("You have", hand_value(player_hand))
+
+        winner = compare_hands(player_hand, dealer_hand)
+        if  winner == 1:
+            print("You are the winner!")
+        elif winner == -1:
+            print("You lost to the dealer...")
+        else:
+            print("You and the dealer tied.")
+
+    # ask to play again
+    answer = input("Would you like to play again (Y/N)? ").lower()
+    if not(answer == "y" or answer == "yes"):
+        run = False
+        break
